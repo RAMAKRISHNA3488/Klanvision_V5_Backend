@@ -28,26 +28,34 @@ export async function login(request, env) {
     const is2FAEnabled = !!admin.is2faenabled;
     let token = null;
 
+    // Fetch permissions
+    const { results: perms } = await env.DB.prepare(
+      'SELECT permission FROM admin_user_permissions WHERE admin_user_id = ?'
+    ).bind(admin.id).all();
+    
+    const mappedPerms = perms.map(p => p.permission);
+
     if (!is2FAEnabled) {
-      // If 2FA is not enabled, generate token right now
-      const { results: perms } = await env.DB.prepare(
-        'SELECT permission FROM admin_user_permissions WHERE admin_user_id = ?'
-      ).bind(admin.id).all();
-      
       const secret = env.JWT_SECRET || 'klanvision_super_secret_key_2026';
       token = await generateToken({
         id: admin.id,
         email: admin.email,
         role: admin.role,
-        permissions: perms.map(p => p.permission)
+        permissions: mappedPerms
       }, secret);
     }
 
+    const adminData = { ...admin };
+    adminData.permissions = mappedPerms;
+    adminData.token = token;
+    adminData.is2FAEnabled = is2FAEnabled;
+    adminData.is2FAConfigured = !!admin.is2faconfigured;
+    adminData.failed2FAAttempts = admin.failed2faattempts;
+    adminData.lastActive = admin.last_active;
+    adminData.isAuthorized = !!admin.is_authorized;
+
     return Response.json({
-      email: admin.email,
-      role: admin.role,
-      is2FAEnabled,
-      token,
+      ...adminData,
       message: 'Login successful'
     });
   }
@@ -66,8 +74,32 @@ export async function verify2FA(request, env) {
 
   if (!admin) return new Response('User not found', { status: 404 });
 
+  if (admin.is_authorized === 0) {
+    return new Response('Account BLOCKED due to security violations.', { status: 403 });
+  }
+
   const isValid = await verifyTOTP(code, admin.secret2fa || '');
-  if (!isValid) return new Response('Invalid 2FA code', { status: 401 });
+  if (!isValid) {
+    const newFailCount = (admin.failed2faattempts || 0) + 1;
+    const isAuthorized = newFailCount >= 10 ? 0 : 1;
+    await env.DB.prepare(
+      'UPDATE admins SET failed2faattempts = ?, is_authorized = ? WHERE id = ?'
+    ).bind(newFailCount, isAuthorized, admin.id).run();
+
+    if (newFailCount >= 10) {
+      return new Response('Account BLOCKED due to security violations.', { status: 403 });
+    }
+    return new Response(`Invalid 2FA code. ${10 - newFailCount} attempts remaining.`, { status: 401 });
+  }
+
+  // If valid, reset failed attempts and set is2faconfigured if not set
+  if ((admin.failed2faattempts || 0) > 0 || !admin.is2faconfigured) {
+    await env.DB.prepare(
+      'UPDATE admins SET failed2faattempts = 0, is2faconfigured = 1 WHERE id = ?'
+    ).bind(admin.id).run();
+    admin.is2faconfigured = 1;
+    admin.failed2faattempts = 0;
+  }
 
   // Fetch permissions
   const { results: perms } = await env.DB.prepare(
