@@ -6,6 +6,7 @@
  */
 
 import { generateSecret, verifyTOTP, buildOtpauthUri } from '../utils/totp.js';
+import { generateToken } from '../utils/auth.js';
 import QRCode from 'qrcode-svg';
 
 // ─── QR code generation ────────────────────────────────────────────────────────
@@ -24,10 +25,29 @@ export async function login(request, env) {
   ).bind(usernameOrEmail, usernameOrEmail).first();
 
   if (admin && admin.password === password) {
+    const is2FAEnabled = !!admin.is2faenabled;
+    let token = null;
+
+    if (!is2FAEnabled) {
+      // If 2FA is not enabled, generate token right now
+      const { results: perms } = await env.DB.prepare(
+        'SELECT permission FROM admin_user_permissions WHERE admin_user_id = ?'
+      ).bind(admin.id).all();
+      
+      const secret = env.JWT_SECRET || 'klanvision_super_secret_key_2026';
+      token = await generateToken({
+        id: admin.id,
+        email: admin.email,
+        role: admin.role,
+        permissions: perms.map(p => p.permission)
+      }, secret);
+    }
+
     return Response.json({
       email: admin.email,
       role: admin.role,
-      is2FAEnabled: !!admin.is2faenabled,
+      is2FAEnabled,
+      token,
       message: 'Login successful'
     });
   }
@@ -55,7 +75,18 @@ export async function verify2FA(request, env) {
   ).bind(admin.id).all();
   
   const adminData = { ...admin };
-  adminData.permissions = perms.map(p => p.permission);
+  const mappedPerms = perms.map(p => p.permission);
+  adminData.permissions = mappedPerms;
+  
+  const secret = env.JWT_SECRET || 'klanvision_super_secret_key_2026';
+  const token = await generateToken({
+    id: admin.id,
+    email: admin.email,
+    role: admin.role,
+    permissions: mappedPerms
+  }, secret);
+  adminData.token = token;
+
   // Normalise field names to camelCase for frontend compatibility
   adminData.is2FAEnabled = !!adminData.is2faenabled;
   adminData.is2FAConfigured = !!adminData.is2faconfigured;

@@ -24,6 +24,9 @@ import { getActiveJobs, getAllJobs, createJob, updateJob, deleteJob } from './ha
 import { getAllProjects, createProject, updateProject, deleteProject } from './handlers/projects.js';
 import { getSeoSettings, updateSeoSettings } from './handlers/seo.js';
 import { runSeed } from './utils/seed.js';
+import { requireAuth } from './utils/auth.js';
+
+const withAuth = (module) => (req, env) => requireAuth(req, env, module);
 
 // ─── Allowed origins ──────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
@@ -65,10 +68,10 @@ router.get('/admin/generate-2fa', (req, env) => generate2FA(req, env));
 router.post('/admin/setup', (req, env) => setupAdmin(req, env));
 router.post('/admin/seed', (req, env) => runSeed(req, env));
 
-router.get('/admin/users', (req, env) => getAllUsers(req, env));
-router.post('/admin/users', (req, env) => createUser(req, env));
-router.put('/admin/users/:id', (req, env) => updateUser(req, env, { params: req.params }));
-router.delete('/admin/users/:id', (req, env) => deleteUser(req, env, { params: req.params }));
+router.get('/admin/users', withAuth('Users'), (req, env) => getAllUsers(req, env));
+router.post('/admin/users', withAuth('Users'), (req, env) => createUser(req, env));
+router.put('/admin/users/:id', withAuth('Users'), (req, env) => updateUser(req, env, { params: req.params }));
+router.delete('/admin/users/:id', withAuth('Users'), (req, env) => deleteUser(req, env, { params: req.params }));
 
 // ── Candidate routes ──────────────────────────────────────────────────────────
 router.post('/candidates/register', (req, env) => candidateRegister(req, env));
@@ -83,31 +86,31 @@ router.get('/applications/:id/resume', (req, env) => getResume(req, env, { param
 router.delete('/applications/:id', (req, env) => deleteApplication(req, env, { params: req.params }));
 
 // ── Activity routes ───────────────────────────────────────────────────────────
-router.get('/activities', (req, env) => getAllActivities(req, env));
-router.post('/activities', (req, env) => addActivity(req, env));
+router.get('/activities', withAuth('Activity Log'), (req, env) => getAllActivities(req, env));
+router.post('/activities', withAuth('Activity Log'), (req, env) => addActivity(req, env));
 
 // ── Blog routes ───────────────────────────────────────────────────────────────
-router.get('/blogs', (req, env) => getAllPosts(req, env));
-router.post('/blogs', (req, env) => createPost(req, env));
-router.put('/blogs/:id', (req, env) => updatePost(req, env, { params: req.params }));
-router.delete('/blogs/:id', (req, env) => deletePost(req, env, { params: req.params }));
+router.get('/blogs', withAuth('Blogs'), (req, env) => getAllPosts(req, env));
+router.post('/blogs', withAuth('Blogs'), (req, env) => createPost(req, env));
+router.put('/blogs/:id', withAuth('Blogs'), (req, env) => updatePost(req, env, { params: req.params }));
+router.delete('/blogs/:id', withAuth('Blogs'), (req, env) => deletePost(req, env, { params: req.params }));
 
 // ── Job routes ────────────────────────────────────────────────────────────────
 router.get('/jobs/active', (req, env) => getActiveJobs(req, env));
-router.get('/jobs', (req, env) => getAllJobs(req, env));
-router.post('/jobs', (req, env) => createJob(req, env));
-router.put('/jobs/:id', (req, env) => updateJob(req, env, { params: req.params }));
-router.delete('/jobs/:id', (req, env) => deleteJob(req, env, { params: req.params }));
+router.get('/jobs', withAuth('Projects'), (req, env) => getAllJobs(req, env));
+router.post('/jobs', withAuth('Projects'), (req, env) => createJob(req, env));
+router.put('/jobs/:id', withAuth('Projects'), (req, env) => updateJob(req, env, { params: req.params }));
+router.delete('/jobs/:id', withAuth('Projects'), (req, env) => deleteJob(req, env, { params: req.params }));
 
 // ── Project routes ────────────────────────────────────────────────────────────
 router.get('/projects', (req, env) => getAllProjects(req, env));
-router.post('/projects', (req, env) => createProject(req, env));
-router.put('/projects/:id', (req, env) => updateProject(req, env, { params: req.params }));
-router.delete('/projects/:id', (req, env) => deleteProject(req, env, { params: req.params }));
+router.post('/projects', withAuth('Projects'), (req, env) => createProject(req, env));
+router.put('/projects/:id', withAuth('Projects'), (req, env) => updateProject(req, env, { params: req.params }));
+router.delete('/projects/:id', withAuth('Projects'), (req, env) => deleteProject(req, env, { params: req.params }));
 
 // ── SEO routes ────────────────────────────────────────────────────────────────
-router.get('/seo', (req, env) => getSeoSettings(req, env));
-router.put('/seo', (req, env) => updateSeoSettings(req, env));
+router.get('/seo', withAuth('Settings'), (req, env) => getSeoSettings(req, env));
+router.put('/seo', withAuth('Settings'), (req, env) => updateSeoSettings(req, env));
 
 // ── Health check ──────────────────────────────────────────────────────────────
 router.get('/', () => Response.json({ status: 'ok', service: 'Klanvision API', runtime: 'Cloudflare Workers' }));
