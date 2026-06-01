@@ -18,7 +18,7 @@ globs = ["**/*.js"]
 [[d1_databases]]
 binding = "DB"
 database_name = "klanvision-db"
-database_id = "YOUR_D1_DATABASE_ID_HERE"
+database_id = "0818db46-654c-4f90-b895-e600a17f6994"
 
 # ─── Environment Variables (non-secret) ──────────────────────────────────────
 [vars]
