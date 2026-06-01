@@ -1,84 +1,70 @@
 /**
  * src/handlers/jobs.js
  * ─────────────────────────────────────────────────────────────────────────────
- * Job listing routes — mirrors jobController.js + jobRoutes.js.
+ * Job listings routes — ported to Cloudflare D1 (SQLite).
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { getDb } from '../db.js';
-
 // ─── GET /api/jobs/active ─────────────────────────────────────────────────────
 export async function getActiveJobs(_request, env) {
-  const db = await getDb(env);
-  try {
-    const [rows] = await db.execute(
-      'SELECT * FROM job_listings WHERE active = 1 ORDER BY id'
-    );
-    return Response.json(rows);
-  } finally {
-    await db.end();
-  }
+  const { results } = await env.DB.prepare(
+    'SELECT * FROM job_listings WHERE active = 1 ORDER BY id DESC'
+  ).all();
+  
+  return Response.json(results.map(j => ({ ...j, active: !!j.active })));
 }
 
 // ─── GET /api/jobs ────────────────────────────────────────────────────────────
 export async function getAllJobs(_request, env) {
-  const db = await getDb(env);
-  try {
-    const [rows] = await db.execute('SELECT * FROM job_listings ORDER BY id');
-    return Response.json(rows);
-  } finally {
-    await db.end();
-  }
+  const { results } = await env.DB.prepare('SELECT * FROM job_listings ORDER BY id DESC').all();
+  return Response.json(results.map(j => ({ ...j, active: !!j.active })));
 }
 
 // ─── POST /api/jobs ───────────────────────────────────────────────────────────
 export async function createJob(request, env) {
   const { title, department, location, type, description, requirements, active } = await request.json();
-  const db = await getDb(env);
-  try {
-    const [result] = await db.execute(
-      `INSERT INTO job_listings (title, department, location, type, description, requirements, active)
-       VALUES (?,?,?,?,?,?,?)`,
-      [title, department, location, type, description, requirements, active !== false ? 1 : 0]
-    );
-    const [rows] = await db.execute('SELECT * FROM job_listings WHERE id = ?', [result.insertId]);
-    return Response.json(rows[0]);
-  } finally {
-    await db.end();
-  }
+  
+  const { meta } = await env.DB.prepare(
+    `INSERT INTO job_listings (title, department, location, type, description, requirements, active)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    title, department, location, type, description,
+    Array.isArray(requirements) ? JSON.stringify(requirements) : requirements,
+    active ? 1 : 0
+  ).run();
+
+  const row = await env.DB.prepare('SELECT * FROM job_listings WHERE id = ?').bind(meta.last_row_id).first();
+  return Response.json({ ...row, active: !!row.active });
 }
 
 // ─── PUT /api/jobs/:id ────────────────────────────────────────────────────────
 export async function updateJob(request, env, { params }) {
   const { id } = params;
   const { title, department, location, type, description, requirements, active } = await request.json();
-  const db = await getDb(env);
-  try {
-    const [[job]] = await db.execute('SELECT id FROM job_listings WHERE id = ? LIMIT 1', [id]);
-    if (!job) return Response.json({ error: 'Job listing not found' }, { status: 404 });
+  
+  const job = await env.DB.prepare('SELECT id FROM job_listings WHERE id = ?').bind(id).first();
+  if (!job) return Response.json({ error: 'Job not found' }, { status: 404 });
 
-    await db.execute(
-      `UPDATE job_listings SET title=?, department=?, location=?, type=?, description=?, requirements=?, active=? WHERE id=?`,
-      [title, department, location, type, description, requirements, active ? 1 : 0, id]
-    );
-    const [rows] = await db.execute('SELECT * FROM job_listings WHERE id = ?', [id]);
-    return Response.json(rows[0]);
-  } finally {
-    await db.end();
-  }
+  await env.DB.prepare(
+    `UPDATE job_listings SET title=?, department=?, location=?, type=?, description=?, requirements=?, active=?
+     WHERE id=?`
+  ).bind(
+    title, department, location, type, description,
+    Array.isArray(requirements) ? JSON.stringify(requirements) : requirements,
+    active ? 1 : 0, id
+  ).run();
+
+  const row = await env.DB.prepare('SELECT * FROM job_listings WHERE id = ?').bind(id).first();
+  return Response.json({ ...row, active: !!row.active });
 }
 
 // ─── DELETE /api/jobs/:id ─────────────────────────────────────────────────────
 export async function deleteJob(request, env, { params }) {
   const { id } = params;
-  const db = await getDb(env);
-  try {
-    const [[job]] = await db.execute('SELECT id FROM job_listings WHERE id = ? LIMIT 1', [id]);
-    if (!job) return Response.json({ error: 'Job listing not found' }, { status: 404 });
+  
+  const job = await env.DB.prepare('SELECT id FROM job_listings WHERE id = ?').bind(id).first();
+  if (!job) return Response.json({ error: 'Job not found' }, { status: 404 });
 
-    await db.execute('DELETE FROM job_listings WHERE id = ?', [id]);
-    return Response.json({ message: 'Job listing deleted successfully' });
-  } finally {
-    await db.end();
-  }
+  await env.DB.prepare('DELETE FROM job_listings WHERE id = ?').bind(id).run();
+  return Response.json({ message: 'Job deleted successfully' });
 }

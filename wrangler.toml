@@ -3,20 +3,22 @@ main = "src/index.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# ─── Bundling ─────────────────────────────────────────────────────────────────
+[[rules]]
+type = "ESModule"
+globs = ["**/*.js"]
+
 # ─── Workers Settings ────────────────────────────────────────────────────────
 # Cloudflare Workers free plan: 100k requests/day
 
-# ─── Hyperdrive (MySQL connection pool) ──────────────────────────────────────
-# OPTIONAL but recommended for production connection pooling.
-# To enable Hyperdrive:
-#   1. Run: npx wrangler hyperdrive create klanvision-mysql --connection-string="mysql://USER:PASS@HOST:PORT/DB_NAME"
-#   2. Uncomment the [[hyperdrive]] block below and paste the returned UUID.
-#
-# [[hyperdrive]]
-# binding = "HYPERDRIVE"
-# id = "PASTE-YOUR-UUID-HERE"
-#
-# Without Hyperdrive the worker connects directly using the DB_* secrets below.
+# ─── D1 Database (SQLite) ──────────────────────────────────────────────────────
+# To enable D1:
+#   1. Run: npx wrangler d1 create klanvision-db
+#   2. Paste the generated database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "klanvision-db"
+database_id = "YOUR_D1_DATABASE_ID_HERE"
 
 # ─── Environment Variables (non-secret) ──────────────────────────────────────
 [vars]
@@ -28,15 +30,6 @@ CORS_ORIGIN = "https://www.klanvision.com,https://admin.klanvision.com"
 crons = ["0 0 * * *"]
 
 # ─── Secrets (set via Cloudflare Dashboard → Settings → Variables, or CLI) ───
-# These are required for the worker to connect to MySQL when Hyperdrive is off.
-#
 # Via CLI:
-#   npx wrangler secret put DB_HOST    ← your MySQL hostname (must be public)
-#   npx wrangler secret put DB_PORT    ← e.g. 3306
-#   npx wrangler secret put DB_NAME    ← e.g. klanvision_db
-#   npx wrangler secret put DB_USER    ← e.g. root
-#   npx wrangler secret put DB_PASS    ← your password
+#   npx wrangler secret put CORS_ORIGIN
 #   npx wrangler secret put SEED_SECRET ← any strong string for /api/admin/seed
-#
-# Via Cloudflare Dashboard:
-#   Workers → klanvision-v5-backend → Settings → Variables and Secrets

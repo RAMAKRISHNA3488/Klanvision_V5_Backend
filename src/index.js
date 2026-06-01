@@ -22,7 +22,7 @@ import { getAllActivities, addActivity, purgeOldActivities } from './handlers/ac
 import { getAllPosts, createPost, updatePost, deletePost } from './handlers/blogs.js';
 import { getActiveJobs, getAllJobs, createJob, updateJob, deleteJob } from './handlers/jobs.js';
 import { getAllProjects, createProject, updateProject, deleteProject } from './handlers/projects.js';
-import { getSEOData, updateSEOData } from './handlers/seo.js';
+import { getSeoSettings, updateSeoSettings } from './handlers/seo.js';
 import { runSeed } from './utils/seed.js';
 
 // ─── CORS configuration (matches original Express cors() setup) ───────────────
@@ -94,8 +94,8 @@ router.put(   '/api/projects/:id', (req, env, ctx) => updateProject(req, env, ct
 router.delete('/api/projects/:id', (req, env, ctx) => deleteProject(req, env, ctx));
 
 // ── SEO routes ────────────────────────────────────────────────────────────────
-router.get('/api/seo', (req, env) => getSEOData(req, env));
-router.put('/api/seo', (req, env) => updateSEOData(req, env));
+router.get('/api/seo', (req, env) => getSeoSettings(req, env));
+router.put('/api/seo', (req, env) => updateSeoSettings(req, env));
 
 // ── Health check ──────────────────────────────────────────────────────────────
 router.get('/', () => Response.json({ status: 'ok', service: 'Klanvision API', runtime: 'Cloudflare Workers' }));
