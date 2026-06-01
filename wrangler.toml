@@ -1,0 +1,40 @@
+name = "klanvision-backend"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# ─── Workers Settings ────────────────────────────────────────────────────────
+# Cloudflare Workers free plan: 100k requests/day
+# Upgrade to Paid for higher limits
+
+# ─── Hyperdrive (MySQL connection pool) ──────────────────────────────────────
+# Create via: npx wrangler hyperdrive create klanvision-mysql --connection-string="mysql://USER:PASS@HOST:PORT/DB_NAME"
+# Then paste the returned ID below.
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "YOUR_HYPERDRIVE_ID_HERE"   # ← Replace with actual Hyperdrive config ID
+
+# ─── Environment Variables (non-secret) ──────────────────────────────────────
+[vars]
+CORS_ORIGIN = "https://www.klanvision.com,https://admin.klanvision.com"
+
+# ─── Cron Triggers ───────────────────────────────────────────────────────────
+# Runs purgeOldActivities() every day at 00:00 UTC (replaces setInterval in Node)
+[triggers]
+crons = ["0 0 * * *"]
+
+# ─── Local Development ───────────────────────────────────────────────────────
+# Run: npx wrangler dev
+# Local env vars are in .dev.vars (git-ignored)
+
+# ─── Build ───────────────────────────────────────────────────────────────────
+[build]
+command = ""
+
+# ─── Secrets (set via CLI, NOT stored here) ──────────────────────────────────
+# npx wrangler secret put DB_HOST
+# npx wrangler secret put DB_PORT
+# npx wrangler secret put DB_NAME
+# npx wrangler secret put DB_USER
+# npx wrangler secret put DB_PASS
+# npx wrangler secret put CORS_ORIGIN  (if you want to override [vars] above)
