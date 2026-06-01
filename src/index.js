@@ -67,20 +67,20 @@ router.post('/admin/seed', (req, env) => runSeed(req, env));
 
 router.get('/admin/users', (req, env) => getAllUsers(req, env));
 router.post('/admin/users', (req, env) => createUser(req, env));
-router.put('/admin/users/:id', (req, env, ctx) => updateUser(req, env, ctx));
-router.delete('/admin/users/:id', (req, env, ctx) => deleteUser(req, env, ctx));
+router.put('/admin/users/:id', (req, env) => updateUser(req, env, { params: req.params }));
+router.delete('/admin/users/:id', (req, env) => deleteUser(req, env, { params: req.params }));
 
 // ── Candidate routes ──────────────────────────────────────────────────────────
 router.post('/candidates/register', (req, env) => candidateRegister(req, env));
 router.post('/candidates/login', (req, env) => candidateLogin(req, env));
-router.get('/candidates/:id', (req, env, ctx) => getProfile(req, env, ctx));
-router.get('/candidates/:id/resume', (req, env, ctx) => downloadResume(req, env, ctx));
+router.get('/candidates/:id', (req, env) => getProfile(req, env, { params: req.params }));
+router.get('/candidates/:id/resume', (req, env) => downloadResume(req, env, { params: req.params }));
 
 // ── Application routes ────────────────────────────────────────────────────────
 router.post('/applications', (req, env) => submitApplication(req, env));
 router.get('/applications', (req, env) => getAllApplications(req, env));
-router.get('/applications/:id/resume', (req, env, ctx) => getResume(req, env, ctx));
-router.delete('/applications/:id', (req, env, ctx) => deleteApplication(req, env, ctx));
+router.get('/applications/:id/resume', (req, env) => getResume(req, env, { params: req.params }));
+router.delete('/applications/:id', (req, env) => deleteApplication(req, env, { params: req.params }));
 
 // ── Activity routes ───────────────────────────────────────────────────────────
 router.get('/activities', (req, env) => getAllActivities(req, env));
@@ -89,21 +89,21 @@ router.post('/activities', (req, env) => addActivity(req, env));
 // ── Blog routes ───────────────────────────────────────────────────────────────
 router.get('/blogs', (req, env) => getAllPosts(req, env));
 router.post('/blogs', (req, env) => createPost(req, env));
-router.put('/blogs/:id', (req, env, ctx) => updatePost(req, env, ctx));
-router.delete('/blogs/:id', (req, env, ctx) => deletePost(req, env, ctx));
+router.put('/blogs/:id', (req, env) => updatePost(req, env, { params: req.params }));
+router.delete('/blogs/:id', (req, env) => deletePost(req, env, { params: req.params }));
 
 // ── Job routes ────────────────────────────────────────────────────────────────
 router.get('/jobs/active', (req, env) => getActiveJobs(req, env));
 router.get('/jobs', (req, env) => getAllJobs(req, env));
 router.post('/jobs', (req, env) => createJob(req, env));
-router.put('/jobs/:id', (req, env, ctx) => updateJob(req, env, ctx));
-router.delete('/jobs/:id', (req, env, ctx) => deleteJob(req, env, ctx));
+router.put('/jobs/:id', (req, env) => updateJob(req, env, { params: req.params }));
+router.delete('/jobs/:id', (req, env) => deleteJob(req, env, { params: req.params }));
 
 // ── Project routes ────────────────────────────────────────────────────────────
 router.get('/projects', (req, env) => getAllProjects(req, env));
 router.post('/projects', (req, env) => createProject(req, env));
-router.put('/projects/:id', (req, env, ctx) => updateProject(req, env, ctx));
-router.delete('/projects/:id', (req, env, ctx) => deleteProject(req, env, ctx));
+router.put('/projects/:id', (req, env) => updateProject(req, env, { params: req.params }));
+router.delete('/projects/:id', (req, env) => deleteProject(req, env, { params: req.params }));
 
 // ── SEO routes ────────────────────────────────────────────────────────────────
 router.get('/seo', (req, env) => getSeoSettings(req, env));
