@@ -47,59 +47,62 @@ const router = AutoRouter({
 });
 
 // ── Admin routes ──────────────────────────────────────────────────────────────
-router.post('/api/admin/login',       (req, env) => adminLogin(req, env));
-router.post('/api/admin/verify-2fa',  (req, env) => verify2FA(req, env));
-router.get( '/api/admin/generate-2fa',(req, env) => generate2FA(req, env));
-router.post('/api/admin/setup',       (req, env) => setupAdmin(req, env));
-router.post('/api/admin/seed',        (req, env) => runSeed(req, env));   // One-time seeder
+router.post('/admin/login',       (req, env) => adminLogin(req, env));
+router.post('/admin/verify-2fa',  (req, env) => verify2FA(req, env));
+router.get( '/admin/generate-2fa',(req, env) => generate2FA(req, env));
+router.post('/admin/setup',       (req, env) => setupAdmin(req, env));
+router.post('/admin/seed',        (req, env) => runSeed(req, env));   // One-time seeder
 
-router.get(   '/api/admin/users',       (req, env) => getAllUsers(req, env));
-router.post(  '/api/admin/users',       (req, env) => createUser(req, env));
-router.put(   '/api/admin/users/:id',   (req, env, ctx) => updateUser(req, env, ctx));
-router.delete('/api/admin/users/:id',   (req, env, ctx) => deleteUser(req, env, ctx));
+router.get(   '/admin/users',       (req, env) => getAllUsers(req, env));
+router.post(  '/admin/users',       (req, env) => createUser(req, env));
+router.put(   '/admin/users/:id',   (req, env, ctx) => updateUser(req, env, ctx));
+router.delete('/admin/users/:id',   (req, env, ctx) => deleteUser(req, env, ctx));
 
 // ── Candidate routes ──────────────────────────────────────────────────────────
-router.post('/api/candidates/register',          (req, env) => candidateRegister(req, env));
-router.post('/api/candidates/login',             (req, env) => candidateLogin(req, env));
-router.get( '/api/candidates/:id',               (req, env, ctx) => getProfile(req, env, ctx));
-router.get( '/api/candidates/:id/resume',        (req, env, ctx) => downloadResume(req, env, ctx));
+router.post('/candidates/register',          (req, env) => candidateRegister(req, env));
+router.post('/candidates/login',             (req, env) => candidateLogin(req, env));
+router.get( '/candidates/:id',               (req, env, ctx) => getProfile(req, env, ctx));
+router.get( '/candidates/:id/resume',        (req, env, ctx) => downloadResume(req, env, ctx));
 
 // ── Application routes ────────────────────────────────────────────────────────
-router.post(  '/api/applications',           (req, env) => submitApplication(req, env));
-router.get(   '/api/applications',           (req, env) => getAllApplications(req, env));
-router.get(   '/api/applications/:id/resume',(req, env, ctx) => getResume(req, env, ctx));
-router.delete('/api/applications/:id',       (req, env, ctx) => deleteApplication(req, env, ctx));
+router.post(  '/applications',           (req, env) => submitApplication(req, env));
+router.get(   '/applications',           (req, env) => getAllApplications(req, env));
+router.get(   '/applications/:id/resume',(req, env, ctx) => getResume(req, env, ctx));
+router.delete('/applications/:id',       (req, env, ctx) => deleteApplication(req, env, ctx));
 
 // ── Activity routes ───────────────────────────────────────────────────────────
-router.get( '/api/activities', (req, env) => getAllActivities(req, env));
-router.post('/api/activities', (req, env) => addActivity(req, env));
+router.get( '/activities', (req, env) => getAllActivities(req, env));
+router.post('/activities', (req, env) => addActivity(req, env));
 
 // ── Blog routes ───────────────────────────────────────────────────────────────
-router.get(   '/api/blogs',     (req, env) => getAllPosts(req, env));
-router.post(  '/api/blogs',     (req, env) => createPost(req, env));
-router.put(   '/api/blogs/:id', (req, env, ctx) => updatePost(req, env, ctx));
-router.delete('/api/blogs/:id', (req, env, ctx) => deletePost(req, env, ctx));
+router.get(   '/blogs',     (req, env) => getAllPosts(req, env));
+router.post(  '/blogs',     (req, env) => createPost(req, env));
+router.put(   '/blogs/:id', (req, env, ctx) => updatePost(req, env, ctx));
+router.delete('/blogs/:id', (req, env, ctx) => deletePost(req, env, ctx));
 
 // ── Job routes ────────────────────────────────────────────────────────────────
-router.get(   '/api/jobs/active', (req, env) => getActiveJobs(req, env));
-router.get(   '/api/jobs',        (req, env) => getAllJobs(req, env));
-router.post(  '/api/jobs',        (req, env) => createJob(req, env));
-router.put(   '/api/jobs/:id',    (req, env, ctx) => updateJob(req, env, ctx));
-router.delete('/api/jobs/:id',    (req, env, ctx) => deleteJob(req, env, ctx));
+router.get(   '/jobs/active', (req, env) => getActiveJobs(req, env));
+router.get(   '/jobs',        (req, env) => getAllJobs(req, env));
+router.post(  '/jobs',        (req, env) => createJob(req, env));
+router.put(   '/jobs/:id',    (req, env, ctx) => updateJob(req, env, ctx));
+router.delete('/jobs/:id',    (req, env, ctx) => deleteJob(req, env, ctx));
 
 // ── Project routes ────────────────────────────────────────────────────────────
-router.get(   '/api/projects',     (req, env) => getAllProjects(req, env));
-router.post(  '/api/projects',     (req, env) => createProject(req, env));
-router.put(   '/api/projects/:id', (req, env, ctx) => updateProject(req, env, ctx));
-router.delete('/api/projects/:id', (req, env, ctx) => deleteProject(req, env, ctx));
+router.get(   '/projects',     (req, env) => getAllProjects(req, env));
+router.post(  '/projects',     (req, env) => createProject(req, env));
+router.put(   '/projects/:id', (req, env, ctx) => updateProject(req, env, ctx));
+router.delete('/projects/:id', (req, env, ctx) => deleteProject(req, env, ctx));
 
 // ── SEO routes ────────────────────────────────────────────────────────────────
-router.get('/api/seo', (req, env) => getSeoSettings(req, env));
-router.put('/api/seo', (req, env) => updateSeoSettings(req, env));
+router.get('/seo', (req, env) => getSeoSettings(req, env));
+router.put('/seo', (req, env) => updateSeoSettings(req, env));
 
 // ── Health check ──────────────────────────────────────────────────────────────
 router.get('/', () => Response.json({ status: 'ok', service: 'Klanvision API', runtime: 'Cloudflare Workers' }));
 router.get('/health', () => Response.json({ status: 'ok' }));
+
+// ── Catch-All 404 (Ensures CORS headers are attached to 404s) ─────────────────
+router.all('*', () => new Response('Not Found', { status: 404 }));
 
 // ─── Worker Exports ───────────────────────────────────────────────────────────
 export default {
@@ -109,6 +112,14 @@ export default {
    */
   async fetch(request, env, ctx) {
     request.env = env; // Make env available inside CORS origin callback
+    
+    // Support both /api/foo and /foo by stripping /api from the URL
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/')) {
+      url.pathname = url.pathname.substring(4); // removes '/api'
+      request = new Request(url.toString(), request);
+    }
+    
     return router.fetch(request, env, ctx);
   },
 

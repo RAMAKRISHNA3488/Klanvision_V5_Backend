@@ -21,9 +21,29 @@ export async function runSeed(request, env) {
   const logs = [];
 
   try {
-    // 2. Clear old admins (just in case)
-    await env.DB.prepare('DELETE FROM admins').run();
-    logs.push('Cleared old admin accounts.');
+    // 2. Seed Default Admin
+    const { count: adminCount } = await env.DB.prepare('SELECT COUNT(*) AS count FROM admins').first();
+    if (parseInt(adminCount) === 0) {
+      // Create admin user
+      const { meta } = await env.DB.prepare(
+        `INSERT INTO admins (username, email, name, password, role, status, color, is_authorized, is2faenabled) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind('admin', 'admin@klanvision.com', 'Super Admin', 'KlanAdmin2026!', 'SUPER_ADMIN', 'Online', '#6366F1', 1, 0).run();
+      
+      const adminId = meta.last_row_id;
+
+      // Grant all permissions
+      const perms = ['ALL_ACCESS', 'MANAGE_USERS', 'MANAGE_JOBS', 'MANAGE_BLOGS'];
+      const stmts = perms.map(p => 
+        env.DB.prepare('INSERT INTO admin_user_permissions (admin_user_id, permission) VALUES (?, ?)')
+        .bind(adminId, p)
+      );
+      await env.DB.batch(stmts);
+      
+      logs.push('Seeded default Super Admin account.');
+    } else {
+      logs.push('Admin accounts already exist, skipping admin seed.');
+    }
 
     // 3. Seed Jobs
     const { count: jobCount } = await env.DB.prepare('SELECT COUNT(*) AS count FROM job_listings').first();
