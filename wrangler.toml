@@ -5,36 +5,38 @@ compatibility_flags = ["nodejs_compat"]
 
 # ─── Workers Settings ────────────────────────────────────────────────────────
 # Cloudflare Workers free plan: 100k requests/day
-# Upgrade to Paid for higher limits
 
 # ─── Hyperdrive (MySQL connection pool) ──────────────────────────────────────
-# Create via: npx wrangler hyperdrive create klanvision-mysql --connection-string="mysql://USER:PASS@HOST:PORT/DB_NAME"
-# Then paste the returned ID below.
-[[hyperdrive]]
-binding = "HYPERDRIVE"
-id = "YOUR_HYPERDRIVE_ID_HERE"   # ← Replace with actual Hyperdrive config ID
+# OPTIONAL but recommended for production connection pooling.
+# To enable Hyperdrive:
+#   1. Run: npx wrangler hyperdrive create klanvision-mysql --connection-string="mysql://USER:PASS@HOST:PORT/DB_NAME"
+#   2. Uncomment the [[hyperdrive]] block below and paste the returned UUID.
+#
+# [[hyperdrive]]
+# binding = "HYPERDRIVE"
+# id = "PASTE-YOUR-UUID-HERE"
+#
+# Without Hyperdrive the worker connects directly using the DB_* secrets below.
 
 # ─── Environment Variables (non-secret) ──────────────────────────────────────
 [vars]
 CORS_ORIGIN = "https://www.klanvision.com,https://admin.klanvision.com"
 
 # ─── Cron Triggers ───────────────────────────────────────────────────────────
-# Runs purgeOldActivities() every day at 00:00 UTC (replaces setInterval in Node)
+# Runs purgeOldActivities() every day at 00:00 UTC
 [triggers]
 crons = ["0 0 * * *"]
 
-# ─── Local Development ───────────────────────────────────────────────────────
-# Run: npx wrangler dev
-# Local env vars are in .dev.vars (git-ignored)
-
-# ─── Build ───────────────────────────────────────────────────────────────────
-[build]
-command = ""
-
-# ─── Secrets (set via CLI, NOT stored here) ──────────────────────────────────
-# npx wrangler secret put DB_HOST
-# npx wrangler secret put DB_PORT
-# npx wrangler secret put DB_NAME
-# npx wrangler secret put DB_USER
-# npx wrangler secret put DB_PASS
-# npx wrangler secret put CORS_ORIGIN  (if you want to override [vars] above)
+# ─── Secrets (set via Cloudflare Dashboard → Settings → Variables, or CLI) ───
+# These are required for the worker to connect to MySQL when Hyperdrive is off.
+#
+# Via CLI:
+#   npx wrangler secret put DB_HOST    ← your MySQL hostname (must be public)
+#   npx wrangler secret put DB_PORT    ← e.g. 3306
+#   npx wrangler secret put DB_NAME    ← e.g. klanvision_db
+#   npx wrangler secret put DB_USER    ← e.g. root
+#   npx wrangler secret put DB_PASS    ← your password
+#   npx wrangler secret put SEED_SECRET ← any strong string for /api/admin/seed
+#
+# Via Cloudflare Dashboard:
+#   Workers → klanvision-v5-backend → Settings → Variables and Secrets
