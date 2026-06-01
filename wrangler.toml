@@ -1,4 +1,4 @@
-name = "klanvision-backend"
+name = "klanvision-v5-backend"
 main = "src/index.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
