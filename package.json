@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "itty-router": "^5.0.18",
+    "nodemailer": "^8.0.10",
     "qrcode-svg": "^1.1.0"
   },
   "devDependencies": {
