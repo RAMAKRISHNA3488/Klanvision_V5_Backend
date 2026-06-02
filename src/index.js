@@ -90,7 +90,7 @@ router.get('/activities', withAuth('Activity Log'), (req, env) => getAllActiviti
 router.post('/activities', withAuth('Activity Log'), (req, env) => addActivity(req, env));
 
 // ── Blog routes ───────────────────────────────────────────────────────────────
-router.get('/blogs', withAuth('Blogs'), (req, env) => getAllPosts(req, env));
+router.get('/blogs', (req, env) => getAllPosts(req, env));
 router.post('/blogs', withAuth('Blogs'), (req, env) => createPost(req, env));
 router.put('/blogs/:id', withAuth('Blogs'), (req, env) => updatePost(req, env, { params: req.params }));
 router.delete('/blogs/:id', withAuth('Blogs'), (req, env) => deletePost(req, env, { params: req.params }));
