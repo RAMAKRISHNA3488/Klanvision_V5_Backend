@@ -25,6 +25,12 @@ import { getAllProjects, createProject, updateProject, deleteProject } from './h
 import { getSeoSettings, updateSeoSettings } from './handlers/seo.js';
 import { runSeed } from './utils/seed.js';
 import { requireAuth } from './utils/auth.js';
+import {
+  getAllExams, getExamById, createExam, updateExam, deleteExam,
+  upsertProfile, getAttempts, createAttempt, getAttemptAnswers,
+  upsertAttemptAnswers, getQuestionsForExam, submitAttempt,
+  createQuestion, updateQuestion, deleteQuestion
+} from './handlers/exams.js';
 
 const withAuth = (module) => (req, env) => requireAuth(req, env, module);
 
@@ -32,6 +38,8 @@ const withAuth = (module) => (req, env) => requireAuth(req, env, module);
 const ALLOWED_ORIGINS = [
   'https://www.klanvision.com',
   'https://klanvision.com',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
 ];
 
 // ─── CORS header builder ──────────────────────────────────────────────────────
@@ -111,6 +119,23 @@ router.delete('/projects/:id', withAuth('Projects'), (req, env) => deleteProject
 // ── SEO routes ────────────────────────────────────────────────────────────────
 router.get('/seo', withAuth('Settings'), (req, env) => getSeoSettings(req, env));
 router.put('/seo', withAuth('Settings'), (req, env) => updateSeoSettings(req, env));
+
+// ── Exam routes ───────────────────────────────────────────────────────────────
+router.get('/exams', (req, env) => getAllExams(req, env));
+router.get('/exams/:id', (req, env) => getExamById(req, env, { params: req.params }));
+router.post('/exams', withAuth(), (req, env) => createExam(req, env));
+router.put('/exams/:id', withAuth(), (req, env) => updateExam(req, env, { params: req.params }));
+router.delete('/exams/:id', withAuth(), (req, env) => deleteExam(req, env, { params: req.params }));
+router.post('/exam-profiles', (req, env) => upsertProfile(req, env));
+router.get('/attempts', (req, env) => getAttempts(req, env));
+router.post('/attempts', (req, env) => createAttempt(req, env));
+router.get('/attempt-answers', (req, env) => getAttemptAnswers(req, env));
+router.post('/attempt-answers', (req, env) => upsertAttemptAnswers(req, env));
+router.get('/exams/:id/questions', (req, env) => getQuestionsForExam(req, env, { params: req.params }));
+router.post('/attempts/:id/submit', (req, env) => submitAttempt(req, env, { params: req.params }));
+router.post('/exams/:id/questions', withAuth(), (req, env) => createQuestion(req, env, { params: req.params }));
+router.put('/questions/:id', withAuth(), (req, env) => updateQuestion(req, env, { params: req.params }));
+router.delete('/questions/:id', withAuth(), (req, env) => deleteQuestion(req, env, { params: req.params }));
 
 // ── Health check ──────────────────────────────────────────────────────────────
 router.get('/', () => Response.json({ status: 'ok', service: 'Klanvision API', runtime: 'Cloudflare Workers' }));

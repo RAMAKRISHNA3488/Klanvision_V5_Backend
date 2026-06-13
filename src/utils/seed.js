@@ -98,6 +98,166 @@ export async function runSeed(request, env) {
       logs.push('Blog posts already exist, skipping.');
     }
 
+    // 6. Seed Exams & Questions
+    const { count: examCount } = await env.DB.prepare('SELECT COUNT(*) AS count FROM exams').first();
+    if (parseInt(examCount) === 0) {
+      const internshipRoles = [
+        "Cyber Security & Ethical Hacking",
+        "Internet of Things (IoT)",
+        "Software Development",
+        "Embedded Systems",
+        "VLSI",
+        "SQL",
+        "Power BI",
+        "Cloud Computing",
+        "Blockchain Technology",
+        "DevOps",
+        "Software Testing",
+        "Automation Testing",
+        "Big Data",
+        "C Programming",
+        "C++ Programming",
+        "Digital Marketing",
+        "Data Science",
+        "Android Development",
+        "Frontend Web Development",
+        "Python Programming",
+        "Java Programming",
+        "Machine Learning",
+        "Artificial Intelligence",
+        "UI/UX Design",
+        "Data Analytics",
+        "React.js Web Development",
+        "MERN Stack Web Development",
+        ".NET Web Development",
+        "Figma Web Development",
+        "Figma App Development",
+        "Full Stack Web Development",
+        "Backend Web Development"
+      ];
+
+      const jobsList = [
+        "DevSecOps Engineer",
+        "Data Engineer",
+        "Frontend Developer",
+        "Backend Developer",
+        "Full Stack Developer",
+        "Mobile Application Developer"
+      ];
+
+      const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+      const allRoles = [
+        ...jobsList.map(j => ({ title: j, type: 'Full-Time' })),
+        ...internshipRoles.map(i => ({ title: i, type: 'Internship' }))
+      ];
+
+      const examStmts = [];
+      const questionStmts = [];
+
+      for (const role of allRoles) {
+        const id = slugify(role.title);
+        const timer = role.type === 'Internship' ? 20 : 45;
+        
+        examStmts.push(
+          env.DB.prepare(
+            `INSERT INTO exams (id, test_name, role, type, timer, shuffle, negative_marking, negative_marks, total_questions, total_marks, status, client_id, client_name, client_logo_url)
+             VALUES (?, ?, ?, ?, ?, 1, 1, 0.25, 5, 10, 'Active', 'klanvision-tech', 'Klanvision Technologies', '/logo.png')`
+          ).bind(id, `${role.title} Assessment`, role.title, role.type, timer)
+        );
+
+        // Pre-generate 5 questions for this exam
+        const questions = [
+          {
+            id: `${id}-q1`,
+            question_text: `In a production deployment of a ${role.title} project, which of the following is considered the best practice to maximize security and stability?`,
+            option_a: "Implementing Principle of Least Privilege (PoLP) and auditing system logs regularly",
+            option_b: "Disabling CORS settings completely to prevent connection timeouts",
+            option_c: "Running database engines directly on publicly accessible subnets",
+            option_d: "Swallowing exceptions globally to avoid showing stack traces to clients",
+            correct_answer: "A",
+            marks: 2,
+            difficulty: "Medium",
+            section_id: "sec-core",
+            section_name: "Core Technical Concepts"
+          },
+          {
+            id: `${id}-q2`,
+            question_text: `Which of the following standards, libraries, or methodologies is most closely associated with high-performance execution of ${role.title}?`,
+            option_a: "Industry-standard caching structures and memory-optimized architectures",
+            option_b: "Legacy synchronous polling algorithms",
+            option_c: "Client-side graphical styling overrides",
+            option_d: "Manual database transactions logging on physical tapes",
+            correct_answer: "A",
+            marks: 2,
+            difficulty: "Easy",
+            section_id: "sec-core",
+            section_name: "Core Technical Concepts"
+          },
+          {
+            id: `${id}-q3`,
+            question_text: `What is the most effective way to scale a ${role.title} pipeline when handling massive spikes in user traffic or computational workload?`,
+            option_a: "Implementing horizontal scaling and asynchronous task queue handlers",
+            option_b: "Blindly upgrading single-node memory allocations without indexing",
+            option_c: "Enforcing synchronous thread locks on all active write queries",
+            option_d: "Migrating the entire codebase to static storage assets",
+            correct_answer: "A",
+            marks: 3,
+            difficulty: "Hard",
+            section_id: "sec-adv",
+            section_name: "Advanced Scenarios"
+          },
+          {
+            id: `${id}-q4`,
+            question_text: `When designing the system architecture for a ${role.title} component, which design pattern is highly recommended to maintain decoupling?`,
+            option_a: "Observer/Event-driven pub-sub systems with proper abstraction interfaces",
+            option_b: "Monolithic single-file configurations utilizing global mutable states",
+            option_c: "Hard-coding endpoint links directly inside layout controllers",
+            option_d: "Synchronous REST calls nested within infinite polling loops",
+            correct_answer: "A",
+            marks: 2,
+            difficulty: "Medium",
+            section_id: "sec-adv",
+            section_name: "Advanced Scenarios"
+          },
+          {
+            id: `${id}-q5`,
+            question_text: `How should runtime exceptions and system crashes be logged and managed in a standard ${role.title} application?`,
+            option_a: "Forwarding telemetry data securely to a centralized APM tool and degrading gracefully",
+            option_b: "Printing variables to console standard output without log levels",
+            option_c: "Terminating the parent process immediately and forcing a cold restart",
+            option_d: "Redirecting users to the home index route silently",
+            correct_answer: "A",
+            marks: 1,
+            difficulty: "Easy",
+            section_id: "sec-adv",
+            section_name: "Advanced Scenarios"
+          }
+        ];
+
+        for (const q of questions) {
+          questionStmts.push(
+            env.DB.prepare(
+              `INSERT INTO exam_questions (id, exam_id, question_text, option_a, option_b, option_c, option_d, correct_answer, marks, difficulty, section_id, section_name)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(q.id, id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer, q.marks, q.difficulty, q.section_id, q.section_name)
+          );
+        }
+      }
+
+      await env.DB.batch(examStmts);
+
+      const batchSize = 50;
+      for (let i = 0; i < questionStmts.length; i += batchSize) {
+        const slice = questionStmts.slice(i, i + batchSize);
+        await env.DB.batch(slice);
+      }
+
+      logs.push(`Seeded ${allRoles.length} default exams and ${questionStmts.length} corresponding questions.`);
+    } else {
+      logs.push('Exams already exist, skipping exams/questions seed.');
+    }
+
     return Response.json({ success: true, log: logs });
   } catch (error) {
     console.error('Seed Error:', error);
