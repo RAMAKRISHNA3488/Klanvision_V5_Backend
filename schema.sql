@@ -79,6 +79,7 @@ CREATE TABLE internship_candidates (
   certificate_date TEXT,
   performance_remarks TEXT,
   recommendation_text TEXT,
+  image TEXT,
   is_deleted INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

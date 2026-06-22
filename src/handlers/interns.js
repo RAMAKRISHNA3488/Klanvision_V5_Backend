@@ -63,7 +63,7 @@ export async function createIntern(request, env) {
   const { 
     name, email, phone, dob, gender, address, 
     collegeName, university, degree, branch, graduationYear, cgpa,
-    domain, role, startDate, endDate, duration, mentorName 
+    domain, role, startDate, endDate, duration, mentorName, image 
   } = body;
 
   if (!name || !email || !domain || !role || !startDate || !endDate || !duration) {
@@ -88,12 +88,12 @@ export async function createIntern(request, env) {
     `INSERT INTO internship_candidates 
      (candidate_id, name, email, phone, dob, gender, address, 
       college_name, university, degree, branch, graduation_year, cgpa,
-      domain, role, start_date, end_date, duration, mentor_name, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')`
+      domain, role, start_date, end_date, duration, mentor_name, status, image)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?)`
   ).bind(
     candidateId, name, email, phone || null, dob || null, gender || null, address || null,
     collegeName || null, university || null, degree || null, branch || null, graduationYear || null, cgpa || null,
-    domain, role, startDate, endDate, duration, mentorName || null
+    domain, role, startDate, endDate, duration, mentorName || null, image || null
   ).run();
 
   const newIntern = await env.DB.prepare('SELECT * FROM internship_candidates WHERE id = ?')
@@ -179,7 +179,7 @@ export async function updateIntern(request, env, { params }) {
     name, email, phone, dob, gender, address, 
     collegeName, university, degree, branch, graduationYear, cgpa,
     domain, role, startDate, endDate, duration, mentorName, status,
-    performanceRemarks
+    performanceRemarks, image
   } = body;
 
   let certificateNumber = existing.certificate_number;
@@ -201,7 +201,7 @@ export async function updateIntern(request, env, { params }) {
       name = ?, email = ?, phone = ?, dob = ?, gender = ?, address = ?, 
       college_name = ?, university = ?, degree = ?, branch = ?, graduation_year = ?, cgpa = ?,
       domain = ?, role = ?, start_date = ?, end_date = ?, duration = ?, mentor_name = ?, status = ?,
-      certificate_number = ?, certificate_date = ?, performance_remarks = ?, recommendation_text = ?
+      certificate_number = ?, certificate_date = ?, performance_remarks = ?, recommendation_text = ?, image = ?
      WHERE id = ?`
   ).bind(
     name, email, phone, dob, gender, address,
@@ -209,6 +209,7 @@ export async function updateIntern(request, env, { params }) {
     domain, role, startDate, endDate, duration, mentorName, status,
     certificateNumber, certificateDate, performanceRemarks || null, 
     performanceRemarks ? `High recommendation for ${name}` : null,
+    image || null,
     id
   ).run();
 
@@ -316,7 +317,7 @@ export async function regenerateCertificate(request, env, { params }) {
 export async function verifyCertificate(request, env, { params }) {
   const { certificateNumber } = params;
   const cert = await env.DB.prepare(
-    `SELECT name, candidate_id, role, domain, start_date, end_date, certificate_number, certificate_date, status 
+    `SELECT name, candidate_id, role, domain, start_date, end_date, certificate_number, certificate_date, status, image 
      FROM internship_candidates 
      WHERE certificate_number = ? AND is_deleted = 0 LIMIT 1`
   ).bind(certificateNumber).first();

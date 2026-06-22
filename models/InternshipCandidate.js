@@ -100,6 +100,9 @@ const InternshipCandidate = sequelize.define('InternshipCandidate', {
     type: DataTypes.TEXT,
     field: 'recommendation_text'
   },
+  image: {
+    type: DataTypes.TEXT
+  },
   isDeleted: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
