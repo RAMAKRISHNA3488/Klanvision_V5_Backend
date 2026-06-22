@@ -258,6 +258,26 @@ export async function runSeed(request, env) {
       logs.push('Exams already exist, skipping exams/questions seed.');
     }
 
+    // 7. Seed Email Templates
+    const { count: templateCount } = await env.DB.prepare('SELECT COUNT(*) AS count FROM email_templates').first();
+    if (parseInt(templateCount) === 0) {
+      const templates = [
+        ['offer_letter', 'Offer of Internship at Klanvision IT Solutions', 'Dear {name},\n\nWe are pleased to offer you an internship position as a {role} in our {domain} department at Klanvision IT Solutions. Your candidate ID is {candidate_id}.\n\nYour internship is scheduled to begin on {start_date} and end on {end_date}, for a duration of {duration}.\n\nPlease find your official Offer Letter and Internship Participation Letter attached.\n\nBest regards,\nKlanvision Team'],
+        ['participation_letter', 'Internship Participation - Joining Details', 'Dear {name},\n\nWelcome to the Klanvision IT Solutions internship program!\n\nThis email confirms your participation as a {role} in the {domain} program under the mentorship of {mentor_name}.\n\nBest regards,\nKlanvision Team'],
+        ['completion_certificate', 'Congratulations on Completing your Internship at Klanvision!', 'Dear {name},\n\nCongratulations on successfully completing your internship as a {role} in our {domain} department!\n\nYour certificate number is {certificate_number}.\n\nPlease find your Completion Certificate and Recommendation Letter attached to this email.\n\nBest regards,\nKlanvision Team'],
+        ['recommendation_letter', 'Letter of Recommendation - Klanvision IT Solutions', 'Dear {name},\n\nPlease find your Letter of Recommendation attached, reflecting your performance and contributions during your internship at Klanvision IT Solutions.\n\nBest regards,\nKlanvision Team']
+      ];
+
+      const stmts = templates.map(t => 
+        env.DB.prepare('INSERT INTO email_templates (template_key, subject, body) VALUES (?, ?, ?)')
+        .bind(t[0], t[1], t[2])
+      );
+      await env.DB.batch(stmts);
+      logs.push(`Seeded ${templates.length} email templates.`);
+    } else {
+      logs.push('Email templates already exist, skipping.');
+    }
+
     return Response.json({ success: true, log: logs });
   } catch (error) {
     console.error('Seed Error:', error);

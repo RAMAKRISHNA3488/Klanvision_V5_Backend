@@ -31,6 +31,12 @@ import {
   upsertAttemptAnswers, getQuestionsForExam, submitAttempt,
   createQuestion, updateQuestion, deleteQuestion
 } from './handlers/exams.js';
+import {
+  createIntern, getAllInterns, getInternById, updateIntern, deleteIntern,
+  getAllCertificates, getCertificateById, regenerateCertificate, verifyCertificate,
+  downloadOfferLetter, downloadParticipationLetter, downloadCompletionCertificate, downloadRecommendationLetter,
+  getEmailTemplates, updateEmailTemplate
+} from './handlers/interns.js';
 
 const withAuth = (module) => (req, env) => requireAuth(req, env, module);
 
@@ -86,6 +92,31 @@ router.post('/candidates/register', (req, env) => candidateRegister(req, env));
 router.post('/candidates/login', (req, env) => candidateLogin(req, env));
 router.get('/candidates/:id', (req, env) => getProfile(req, env, { params: req.params }));
 router.get('/candidates/:id/resume', (req, env) => downloadResume(req, env, { params: req.params }));
+
+// ── Internship Management routes ──────────────────────────────────────────────
+router.post('/interns', withAuth('Projects'), (req, env) => createIntern(req, env));
+router.get('/interns', withAuth('Projects'), (req, env) => getAllInterns(req, env));
+router.get('/interns/:id', withAuth('Projects'), (req, env) => getInternById(req, env, { params: req.params }));
+router.put('/interns/:id', withAuth('Projects'), (req, env) => updateIntern(req, env, { params: req.params }));
+router.delete('/interns/:id', withAuth('Projects'), (req, env) => deleteIntern(req, env, { params: req.params }));
+
+// Certificates
+router.get('/certificates', withAuth('Projects'), (req, env) => getAllCertificates(req, env));
+router.get('/certificates/:id', withAuth('Projects'), (req, env) => getCertificateById(req, env, { params: req.params }));
+router.post('/certificates/regenerate/:id', withAuth('Projects'), (req, env) => regenerateCertificate(req, env, { params: req.params }));
+
+// Verification (Public)
+router.get('/verify/:certificateNumber', (req, env) => verifyCertificate(req, env, { params: req.params }));
+
+// Documents (Public)
+router.get('/documents/offer-letter/:id', (req, env) => downloadOfferLetter(req, env, { params: req.params }));
+router.get('/documents/participation/:id', (req, env) => downloadParticipationLetter(req, env, { params: req.params }));
+router.get('/documents/completion/:id', (req, env) => downloadCompletionCertificate(req, env, { params: req.params }));
+router.get('/documents/recommendation/:id', (req, env) => downloadRecommendationLetter(req, env, { params: req.params }));
+
+// Email Templates
+router.get('/email-templates', withAuth('Settings'), (req, env) => getEmailTemplates(req, env));
+router.put('/email-templates/:key', withAuth('Settings'), (req, env) => updateEmailTemplate(req, env, { params: req.params }));
 
 // ── Application routes ────────────────────────────────────────────────────────
 router.post('/applications', (req, env) => submitApplication(req, env));

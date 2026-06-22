@@ -49,7 +49,45 @@ CREATE TABLE activities (
   type TEXT,
   status TEXT,
   details TEXT,
+  ip_address TEXT,
   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE internship_candidates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  candidate_id TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  dob TEXT,
+  gender TEXT,
+  address TEXT,
+  college_name TEXT,
+  university TEXT,
+  degree TEXT,
+  branch TEXT,
+  graduation_year TEXT,
+  cgpa TEXT,
+  domain TEXT NOT NULL,
+  role TEXT NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT NOT NULL,
+  duration TEXT NOT NULL,
+  mentor_name TEXT,
+  status TEXT DEFAULT 'Pending',
+  certificate_number TEXT UNIQUE,
+  certificate_date TEXT,
+  performance_remarks TEXT,
+  recommendation_text TEXT,
+  is_deleted INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE email_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  template_key TEXT UNIQUE NOT NULL,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL
 );
 
 CREATE TABLE candidates (

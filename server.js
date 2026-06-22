@@ -14,6 +14,8 @@ import { AdminUserPermission } from './models/AdminUserPermission.js';
 import { JobListing } from './models/JobListing.js';
 import { SEOData } from './models/SEOData.js';
 import { BlogPost } from './models/BlogPost.js';
+import { InternshipCandidate } from './models/InternshipCandidate.js';
+import { EmailTemplate } from './models/EmailTemplate.js';
 
 // Routes
 import adminRoutes from './routes/adminRoutes.js';
@@ -193,6 +195,33 @@ const seedDatabase = async () => {
         authorLink: 'https://linkedin.com/in/marcus-chen-secops'
       }
     ]);
+
+    // Seed default email templates
+    const templateCount = await EmailTemplate.count();
+    if (templateCount === 0) {
+      await EmailTemplate.bulkCreate([
+        {
+          templateKey: 'offer_letter',
+          subject: 'Offer of Internship at Klanvision IT Solutions',
+          body: 'Dear {name},\n\nWe are pleased to offer you an internship position as a {role} in our {domain} department at Klanvision IT Solutions. Your candidate ID is {candidate_id}.\n\nYour internship is scheduled to begin on {start_date} and end on {end_date}, for a duration of {duration}.\n\nPlease find your official Offer Letter and Internship Participation Letter attached.\n\nBest regards,\nKlanvision Team'
+        },
+        {
+          templateKey: 'participation_letter',
+          subject: 'Internship Participation - Joining Details',
+          body: 'Dear {name},\n\nWelcome to the Klanvision IT Solutions internship program!\n\nThis email confirms your participation as a {role} in the {domain} program under the mentorship of {mentor_name}.\n\nBest regards,\nKlanvision Team'
+        },
+        {
+          templateKey: 'completion_certificate',
+          subject: 'Congratulations on Completing your Internship at Klanvision!',
+          body: 'Dear {name},\n\nCongratulations on successfully completing your internship as a {role} in our {domain} department!\n\nYour certificate number is {certificate_number}.\n\nPlease find your Completion Certificate and Recommendation Letter attached to this email.\n\nBest regards,\nKlanvision Team'
+        },
+        {
+          templateKey: 'recommendation_letter',
+          subject: 'Letter of Recommendation - Klanvision IT Solutions',
+          body: 'Dear {name},\n\nPlease find your Letter of Recommendation attached, reflecting your performance and contributions during your internship at Klanvision IT Solutions.\n\nBest regards,\nKlanvision Team'
+        }
+      ]);
+    }
 
     console.log('[Seeder] Database seeding successfully validated.');
   } catch (error) {

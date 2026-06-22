@@ -22,6 +22,10 @@ const AuditActivity = sequelize.define('AuditActivity', {
   details: {
     type: DataTypes.TEXT
   },
+  ipAddress: {
+    type: DataTypes.STRING,
+    field: 'ip_address'
+  },
   timestamp: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
