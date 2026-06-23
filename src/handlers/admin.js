@@ -25,6 +25,9 @@ export async function login(request, env) {
   ).bind(usernameOrEmail, usernameOrEmail).first();
 
   if (admin && admin.password === password) {
+    if (admin.is_authorized === 0) {
+      return new Response('This account is not authorized to access the Panel.', { status: 403 });
+    }
     const is2FAEnabled = !!admin.is2faenabled;
     let token = null;
 
@@ -200,12 +203,12 @@ export async function getAllUsers(_request, env) {
 
 // ─── POST /api/admin/users ────────────────────────────────────────────────────
 export async function createUser(request, env) {
-  const { username, email, name, password, role, status, color, permissions } = await request.json();
+  const { username, email, name, password, role, status, color, permissions, isAuthorized } = await request.json();
   
   const { meta } = await env.DB.prepare(
-    `INSERT INTO admins (username, email, name, password, role, status, color, is2faenabled)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 1)`
-  ).bind(username, email, name, password, role || 'ADMIN', status || 'Offline', color || '#6366F1').run();
+    `INSERT INTO admins (username, email, name, password, role, status, color, is2faenabled, is_authorized)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)`
+  ).bind(username, email, name, password, role || 'ADMIN', status || 'Offline', color || '#6366F1', isAuthorized ?? 1).run();
   
   const userId = meta.last_row_id;
 

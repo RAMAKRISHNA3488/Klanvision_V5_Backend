@@ -107,17 +107,36 @@ export const requireAuth = async (request, env, requiredModule = null) => {
     return Response.json({ error: 'Unauthorized: Invalid or expired token' }, { status: 401 });
   }
 
-  // Attach user to request for downstream handlers
-  request.user = user;
+  // Fetch latest user status and permissions from database to ensure instant revocation works
+  const dbUser = await env.DB.prepare(
+    'SELECT role, is_authorized FROM admins WHERE id = ? LIMIT 1'
+  ).bind(user.id).first();
 
-  // Wait, if no requiredModule specified, just requiring valid auth is enough
+  if (!dbUser || dbUser.is_authorized === 0) {
+    return Response.json({ error: 'Forbidden: Account is disabled or unauthorized' }, { status: 403 });
+  }
+
+  const { results: dbPerms } = await env.DB.prepare(
+    'SELECT permission FROM admin_user_permissions WHERE admin_user_id = ?'
+  ).bind(user.id).all();
+
+  const mappedPerms = dbPerms.map(p => p.permission);
+
+  // Attach database-fresh user details to request
+  request.user = {
+    ...user,
+    role: dbUser.role,
+    permissions: mappedPerms
+  };
+
+  // If no requiredModule specified, just requiring valid auth is enough
   if (!requiredModule) return;
   
   // Method Check: If it's a destructive/write operation, perform stricter checks
   const isWrite = ['POST', 'PUT', 'DELETE'].includes(request.method);
 
-  const role = (user.role || '').toUpperCase();
-  const perms = (user.permissions || []).map(normalizePermission);
+  const role = (dbUser.role || '').toUpperCase();
+  const perms = mappedPerms.map(normalizePermission);
 
   // Super Admin / Admin have full access
   if (['SUPER_ADMIN', 'SUPER ADMIN', 'ADMIN', 'ADMINISTRATOR', 'SUPERADMIN'].includes(role)) {
@@ -137,14 +156,6 @@ export const requireAuth = async (request, env, requiredModule = null) => {
   // Check explicit permissions
   if (perms.includes(requiredModule)) {
     return; // Authorized by explicit permission
-  }
-
-  // Check Base Role access if NO explicit permission match
-  if (role === 'DEVELOPER') {
-    if (requiredModule === 'Projects' || requiredModule === 'Settings') return;
-  }
-  if (role === 'EDITOR') {
-    if (requiredModule === 'Blogs') return;
   }
 
   return Response.json({ error: `Forbidden: Missing required permission for ${requiredModule}` }, { status: 403 });

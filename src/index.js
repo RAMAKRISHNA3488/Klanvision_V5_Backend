@@ -154,9 +154,9 @@ router.put('/seo', withAuth('Settings'), (req, env) => updateSeoSettings(req, en
 // ── Exam routes ───────────────────────────────────────────────────────────────
 router.get('/exams', (req, env) => getAllExams(req, env));
 router.get('/exams/:id', (req, env) => getExamById(req, env, { params: req.params }));
-router.post('/exams', withAuth(), (req, env) => createExam(req, env));
-router.put('/exams/:id', withAuth(), (req, env) => updateExam(req, env, { params: req.params }));
-router.delete('/exams/:id', withAuth(), (req, env) => deleteExam(req, env, { params: req.params }));
+router.post('/exams', withAuth('Exams'), (req, env) => createExam(req, env));
+router.put('/exams/:id', withAuth('Exams'), (req, env) => updateExam(req, env, { params: req.params }));
+router.delete('/exams/:id', withAuth('Exams'), (req, env) => deleteExam(req, env, { params: req.params }));
 router.post('/exam-profiles', (req, env) => upsertProfile(req, env));
 router.get('/attempts', (req, env) => getAttempts(req, env));
 router.post('/attempts', (req, env) => createAttempt(req, env));
@@ -164,9 +164,9 @@ router.get('/attempt-answers', (req, env) => getAttemptAnswers(req, env));
 router.post('/attempt-answers', (req, env) => upsertAttemptAnswers(req, env));
 router.get('/exams/:id/questions', (req, env) => getQuestionsForExam(req, env, { params: req.params }));
 router.post('/attempts/:id/submit', (req, env) => submitAttempt(req, env, { params: req.params }));
-router.post('/exams/:id/questions', withAuth(), (req, env) => createQuestion(req, env, { params: req.params }));
-router.put('/questions/:id', withAuth(), (req, env) => updateQuestion(req, env, { params: req.params }));
-router.delete('/questions/:id', withAuth(), (req, env) => deleteQuestion(req, env, { params: req.params }));
+router.post('/exams/:id/questions', withAuth('Exams'), (req, env) => createQuestion(req, env, { params: req.params }));
+router.put('/questions/:id', withAuth('Exams'), (req, env) => updateQuestion(req, env, { params: req.params }));
+router.delete('/questions/:id', withAuth('Exams'), (req, env) => deleteQuestion(req, env, { params: req.params }));
 
 // ── Health check ──────────────────────────────────────────────────────────────
 router.get('/', () => Response.json({ status: 'ok', service: 'Klanvision API', runtime: 'Cloudflare Workers' }));
